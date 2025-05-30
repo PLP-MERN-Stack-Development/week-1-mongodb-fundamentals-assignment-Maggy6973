@@ -16,14 +16,14 @@ const books = [
     title: 'To Kill a Mockingbird',
     author: 'Harper Lee',
     genre: 'Fiction',
-    published_year: 1960,
+    published_year: 2011,
     price: 12.99,
     in_stock: true,
     pages: 336,
     publisher: 'J. B. Lippincott & Co.'
   },
   {
-    title: '1984',
+    title: 'Rapatacus',
     author: 'George Orwell',
     genre: 'Dystopian',
     published_year: 1949,
@@ -174,6 +174,92 @@ async function insertBooks() {
     console.log('Connection closed');
   }
 }
+
+// ...existing code...
+
+// Find all books in a specific genre
+async function findBooksByGenre(genre) {
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+    const collection = client.db(dbName).collection(collectionName);
+    const books = await collection.find({ genre }).toArray();
+    console.log(`Books in genre "${genre}":`);
+    books.forEach(book => console.log(`- ${book.title} by ${book.author}`));
+  } finally {
+    await client.close();
+  }
+}
+
+// Find books published after a certain year
+async function findBooksAfterYear(year) {
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+    const collection = client.db(dbName).collection(collectionName);
+    const books = await collection.find({ published_year: { $gt: year } }).toArray();
+    console.log(`Books published after ${year}:`);
+    books.forEach(book => console.log(`- ${book.title} (${book.published_year})`));
+  } finally {
+    await client.close();
+  }
+}
+
+// Find books by a specific author
+async function findBooksByAuthor(author) {
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+    const collection = client.db(dbName).collection(collectionName);
+    const books = await collection.find({ author }).toArray();
+    console.log(`Books by ${author}:`);
+    books.forEach(book => console.log(`- ${book.title}`));
+  } finally {
+    await client.close();
+  }
+}
+
+// Update the price of a specific book
+async function updateBookPrice(title, newPrice) {
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+    const collection = client.db(dbName).collection(collectionName);
+    const result = await collection.updateOne({ title }, { $set: { price: newPrice } });
+    if (result.modifiedCount > 0) {
+      console.log(`Price of "${title}" updated to $${newPrice}`);
+    } else {
+      console.log(`Book titled "${title}" not found.`);
+    }
+  } finally {
+    await client.close();
+  }
+}
+
+// Delete a book by its title
+async function deleteBookByTitle(title) {
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+    const collection = client.db(dbName).collection(collectionName);
+    const result = await collection.deleteOne({ title });
+    if (result.deletedCount > 0) {
+      console.log(`Book titled "${title}" deleted.`);
+    } else {
+      console.log(`Book titled "${title}" not found.`);
+    }
+  } finally {
+    await client.close();
+  }
+}
+
+// Example usage (uncomment to run after inserting books):
+ //insertBooks().then(() => findBooksByGenre('Fiction'));
+ //insertBooks().then(() => findBooksAfterYear(1950));
+ //insertBooks().then(() => findBooksByAuthor('George Orwell'));
+// insertBooks().then(() => updateBookPrice('1984', 15.99));
+// insertBooks().then(() => deleteBookByTitle('The Hobbit'));
+
 
 // Run the function
 insertBooks().catch(console.error);
